@@ -49,6 +49,8 @@ export interface Listing {
   availability_date: string | null;
   contact_phone: string;
   whatsapp_phone: string;
+  ai_summary?: string | null;
+  ai_buyer_review?: string | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;

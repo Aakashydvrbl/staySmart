@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
+import { AiBuyerReview } from "@/components/ai-buyer-review";
 import { formatINR } from "@/lib/format";
 import {
   buildTelHref,
@@ -124,6 +125,17 @@ async function ListingDetailContent({
               </p>
             ) : null}
 
+            {listing.ai_summary ? (
+              <div className="mt-6 rounded-xl border border-[#0f6b4e]/25 bg-[#e6f4ee]/65 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-[#0f6b4e]">
+                  Quick Summary
+                </p>
+                <p className="mt-1 text-sm leading-relaxed text-[#14261f]">
+                  {listing.ai_summary}
+                </p>
+              </div>
+            ) : null}
+
             <div className="mt-6 border-t border-[#f3ede0] pt-6">
               <h2 className="text-base font-bold text-[#14261f]">
                 About this PG
@@ -157,7 +169,8 @@ async function ListingDetailContent({
 
         {/* Contact Owner Card */}
         <aside className="lg:col-span-1">
-          <div className="sticky top-24 rounded-2xl border border-[#e4dccb] bg-white p-6 shadow-sm">
+          <div className="sticky top-24 space-y-5">
+            <div className="rounded-2xl border border-[#e4dccb] bg-white p-6 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-wide text-[#4b5e55]">
               Monthly Rent
             </p>
@@ -209,6 +222,13 @@ async function ListingDetailContent({
               Tip: Always visit the PG room in person and confirm meal timings
               and deposit terms before paying any advance.
             </p>
+          </div>
+
+          {/* AI Buyer Review */}
+          <AiBuyerReview
+            listingId={listing.id}
+            existingReview={listing.ai_buyer_review ?? null}
+          />
           </div>
         </aside>
       </div>

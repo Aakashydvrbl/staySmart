@@ -47,6 +47,8 @@ export function SellerListingForm({ sellerId }: SellerListingFormProps) {
   const [sameAsContact, setSameAsContact] = useState(true);
   const [files, setFiles] = useState<File[]>([]);
   const [fileInputKey, setFileInputKey] = useState(0);
+  const [aiSummary, setAiSummary] = useState("");
+  const [generatingAi, setGeneratingAi] = useState(false);
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [createdListingId, setCreatedListingId] = useState<string | null>(null);
@@ -163,6 +165,7 @@ export function SellerListingForm({ sellerId }: SellerListingFormProps) {
           availability_date: availabilityDate || null,
           contact_phone: contactPhone.trim(),
           whatsapp_phone: effectiveWhatsapp,
+          ai_summary: aiSummary.trim() || null,
           is_active: true,
         })
         .select("id")
@@ -184,6 +187,7 @@ export function SellerListingForm({ sellerId }: SellerListingFormProps) {
       setSameAsContact(true);
       setFiles([]);
       setFileInputKey((prev) => prev + 1);
+      setAiSummary("");
       setCreatedListingId(inserted.id);
       router.refresh();
     } catch (err) {
@@ -353,6 +357,69 @@ export function SellerListingForm({ sellerId }: SellerListingFormProps) {
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               placeholder="Describe room setup, meal options, distance to colleges/metro, house rules, and security deposit..."
+              className="mt-1.5 w-full rounded-xl border border-[#e4dccb] bg-[#fbf8f1] px-3.5 py-2.5 text-sm text-[#14261f] focus:border-[#0f6b4e] focus:outline-none"
+            />
+          </div>
+
+          {/* AI Summary (optional) */}
+          <div className="sm:col-span-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <label
+                htmlFor="listing-ai-summary"
+                className="block text-xs font-semibold text-[#4b5e55]"
+              >
+                AI Summary{" "}
+                <span className="font-normal text-[#4b5e55]/70">
+                  (optional — appears on the listing page)
+                </span>
+              </label>
+              <button
+                type="button"
+                disabled={generatingAi || (!title.trim() && !description.trim())}
+                onClick={async () => {
+                  setGeneratingAi(true);
+                  setErrorMessage(null);
+                  try {
+                    const response = await fetch("/api/ai-summary", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        title,
+                        area,
+                        roomType,
+                        monthlyRent,
+                        amenities: selectedAmenities,
+                        description,
+                      }),
+                    });
+                    const result = (await response.json()) as {
+                      summary?: string;
+                      error?: string;
+                    };
+                    if (result.summary) {
+                      setAiSummary(result.summary);
+                    } else {
+                      setErrorMessage(
+                        result.error ?? "AI summary failed. Try again."
+                      );
+                    }
+                  } catch {
+                    setErrorMessage("Could not reach AI summary service.");
+                  } finally {
+                    setGeneratingAi(false);
+                  }
+                }}
+                className="rounded-lg border border-[#0f6b4e]/40 bg-[#e6f4ee] px-3 py-1.5 text-xs font-semibold text-[#0f6b4e] transition-colors hover:bg-[#0f6b4e] hover:text-white disabled:opacity-50"
+              >
+                {generatingAi ? "Generating…" : "✦ Generate with AI"}
+              </button>
+            </div>
+            <textarea
+              id="listing-ai-summary"
+              rows={3}
+              value={aiSummary}
+              onChange={(event) => setAiSummary(event.target.value)}
+              placeholder="Click 'Generate with AI' to create a short 2-sentence summary, or type your own here."
               className="mt-1.5 w-full rounded-xl border border-[#e4dccb] bg-[#fbf8f1] px-3.5 py-2.5 text-sm text-[#14261f] focus:border-[#0f6b4e] focus:outline-none"
             />
           </div>
